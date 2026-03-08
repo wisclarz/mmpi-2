@@ -6,7 +6,8 @@ var routes = [
     },
     {
         path: "/test",
-        redirect: "/test/1"
+        name: "test-start",
+        component: Test
     },
     {
         path: "/test/:question",
