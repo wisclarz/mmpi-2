@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /test_results/{document} {
+      // Herkes okuyabilir
+      allow read: if true;
+
+      // Yeni kayıt oluşturulabilir, zorunlu alanlar kontrol edilir
+      allow create: if request.resource.data.keys().hasAll(['name', 'gender', 'answers', 'scores', 'status', 'version'])
+                    && request.resource.data.name is string
+                    && request.resource.data.gender in ['male', 'female']
+                    && request.resource.data.answers is map
+                    && request.resource.data.scores is map;
+
+      // Güncelleme ve silme yasak
+      allow update, delete: if false;
+    }
+
+    // Diğer koleksiyonlara erişim kapalı
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

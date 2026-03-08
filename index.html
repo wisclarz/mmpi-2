@@ -17,15 +17,14 @@
 			<nav class="app-nav">
 				<router-link to="/">Ana Sayfa</router-link>
 				<router-link to="/test">Test</router-link>
-				<router-link to="/report">Rapor</router-link>
+				<router-link to="/reports">Raporlar</router-link>
 			</nav>
 		</header>
 
 		<router-view></router-view>
 
 		<footer class="app-footer">
-			<p>Eğitim amaçlıdır. Klinik tanı için kullanılamaz. <a href="https://github.com/nucular/mmpi-2">GitHub</a>
-			</p>
+			<p>Eğitim amaçlıdır. Klinik tanı için kullanılamaz.</p>
 		</footer>
 	</div>
 
@@ -61,78 +60,80 @@
 	<!-- ===== TEST VIEW ===== -->
 	<script type="text/x-template" id="test-view-template">
 		<div class="test-section" v-if="questions.length > 0">
-			<div class="progress-container">
-				<div class="progress-info">
-					<span class="progress-label">İlerleme</span>
-					<span class="progress-value">{{answeredCount}} / {{questions.length - 1}} yanıtlandı</span>
-				</div>
-				<div class="progress-track">
-					<div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
-				</div>
+			<!-- Submitting overlay -->
+			<div v-if="submitting" class="loading-container" style="padding: 4rem 2rem;">
+				<div class="loading-spinner"></div>
+				<p class="loading-text">Sonuçlar hesaplanıyor ve kaydediliyor...</p>
 			</div>
 
-			<div class="glass-card question-card">
-				<div class="question-number">Soru {{currentQuestion}} / {{questions.length - 1}}</div>
-				<div class="question-text question-animate" :key="currentQuestion">
-					{{questions[currentQuestion]}}
+			<template v-else>
+				<div class="progress-container">
+					<div class="progress-info">
+						<span class="progress-label">İlerleme</span>
+						<span class="progress-value">{{answeredCount}} / {{questions.length - 1}} yanıtlandı</span>
+					</div>
+					<div class="progress-track">
+						<div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
+					</div>
 				</div>
-				<div class="answer-buttons">
-					<button class="btn-answer btn-true" @click="answer(true)">Doğru</button>
-					<button class="btn-answer btn-false" @click="answer(false)">Yanlış</button>
+
+				<div class="glass-card question-card">
+					<div class="question-number">Soru {{currentQuestion}} / {{questions.length - 1}}</div>
+					<div class="question-text question-animate" :key="currentQuestion">
+						{{questions[currentQuestion]}}
+					</div>
+					<div class="answer-buttons">
+						<button class="btn-answer btn-true" @click="answer(true)">Doğru</button>
+						<button class="btn-answer btn-false" @click="answer(false)">Yanlış</button>
+					</div>
 				</div>
-			</div>
 
-			<div class="question-nav" style="margin-top:1.5rem;">
-				<router-link
-					class="btn-nav"
-					:class="{disabled: currentQuestion <= 1}"
-					:to="'/test/' + (currentQuestion - 1)">
-					<span class="btn-nav-arrow">‹</span>
-				</router-link>
+				<div class="question-nav" style="margin-top:1.5rem;">
+					<router-link
+						class="btn-nav"
+						:class="{disabled: currentQuestion <= 1}"
+						:to="'/test/' + (currentQuestion - 1)">
+						<span class="btn-nav-arrow">‹</span>
+					</router-link>
 
-				<router-link
-					v-for="n in navPages"
-					:key="n"
-					class="btn-nav"
-					:class="{active: n === currentQuestion, answered: isAnswered(n)}"
-					:to="'/test/' + n">
-					{{n}}
-				</router-link>
+					<router-link
+						v-for="n in navPages"
+						:key="n"
+						class="btn-nav"
+						:class="{active: n === currentQuestion, answered: isAnswered(n)}"
+						:to="'/test/' + n">
+						{{n}}
+					</router-link>
 
-				<router-link
-					class="btn-nav"
-					:class="{disabled: currentQuestion >= questions.length - 1}"
-					:to="'/test/' + (currentQuestion + 1)">
-					<span class="btn-nav-arrow">›</span>
-				</router-link>
-			</div>
+					<router-link
+						class="btn-nav"
+						:class="{disabled: currentQuestion >= questions.length - 1}"
+						:to="'/test/' + (currentQuestion + 1)">
+						<span class="btn-nav-arrow">›</span>
+					</router-link>
+				</div>
 
-			<div style="text-align:center;margin-top:1.5rem;" v-if="allAnswered">
-				<router-link class="btn-start" to="/report">Raporu Görüntüle →</router-link>
-			</div>
+				<div style="text-align:center;margin-top:1.5rem;" v-if="allAnswered">
+					<button class="btn-start" @click="submitTest">Testi Tamamla ve Raporu Gör →</button>
+				</div>
+			</template>
 		</div>
 	</script>
 
 	<!-- ===== REPORT VIEW ===== -->
 	<script type="text/x-template" id="report-view-template">
 		<div class="report-section">
-			<!-- History List View -->
-			<div v-if="showHistory">
-				<div class="report-header">
-					<h1 class="report-title">Test Geçmişi</h1>
-					<p class="report-subtitle">Kaydedilmiş tüm testleriniz</p>
-				</div>
-				<div v-if="history.length === 0" class="glass-card report-empty">
-					<div class="report-empty-icon">📋</div>
-					<p class="report-empty-text">Henüz kaydedilmiş test bulunmamaktadır. Lütfen önce testi tamamlayın.</p>
-					<router-link class="btn-link" to="/test/1">Teste Git →</router-link>
-				</div>
-				<div v-else class="history-list glass-card">
-					<div v-for="item in history" :key="item.id" class="history-item" @click="$router.push({name: 'report', query: {id: item.id}})">
-						<div class="history-name">{{item.name}}</div>
-						<div class="history-details">{{item.date}} - {{item.gender === 'male' ? 'Erkek' : 'Kadın'}}</div>
-					</div>
-				</div>
+			<!-- Loading State -->
+			<div v-if="loading" class="loading-container" style="padding: 4rem 2rem;">
+				<div class="loading-spinner"></div>
+				<p class="loading-text">Rapor yükleniyor...</p>
+			</div>
+
+			<!-- Error State -->
+			<div v-else-if="error" class="glass-card report-empty">
+				<div class="report-empty-icon">⚠️</div>
+				<p class="report-empty-text">{{error}}</p>
+				<router-link class="btn-link" to="/reports">← Tüm Raporlar</router-link>
 			</div>
 
 			<!-- Individual Report View -->
@@ -142,6 +143,7 @@
 					<p class="report-subtitle"><strong>İsim:</strong> {{userName || 'İsimsiz'}} | <strong>Tarih:</strong> {{reportDate || 'Bilinmiyor'}}</p>
 					<p class="report-subtitle">Cinsiyet: {{gender === 'male' ? 'Erkek' : 'Kadın'}} | Yanıtlanan: {{Object.keys(answers).length}} soru</p>
 				</div>
+
 				<!-- Chart -->
 				<div class="chart-container">
 					<div class="chart-title">Klinik Profil Grafiği</div>
@@ -197,23 +199,73 @@
 					</div>
 				</div>
 
-				<div style="text-align:center;margin-top:1.5rem; display:flex; justify-content:center; gap: 1rem;">
-					<router-link class="btn-reset" to="/report" style="text-decoration:none;">⬅ Geçmişe Dön</router-link>
-					<button class="btn-reset" @click="clearResults">🗑 Tüm Sonuçları Sil</button>
+				<div style="text-align:center;margin-top:1.5rem; display:flex; justify-content:center; gap: 1rem; flex-wrap: wrap;">
+					<router-link class="btn-link" to="/reports" style="text-decoration:none;">← Tüm Raporlar</router-link>
+					<button class="btn-link" @click="copyLink" title="Rapor bağlantısını kopyala">🔗 Bağlantıyı Kopyala</button>
 				</div>
 			</div>
 		</div>
 	</script>
 
+	<!-- ===== REPORTS LIST VIEW ===== -->
+	<script type="text/x-template" id="reports-view-template">
+		<div class="report-section">
+			<div class="report-header">
+				<h1 class="report-title">Test Raporları</h1>
+				<p class="report-subtitle">Tüm tamamlanmış test sonuçları</p>
+			</div>
+
+			<!-- Loading -->
+			<div v-if="loading" class="loading-container" style="padding: 4rem 2rem;">
+				<div class="loading-spinner"></div>
+				<p class="loading-text">Raporlar yükleniyor...</p>
+			</div>
+
+			<!-- Error -->
+			<div v-else-if="error" class="glass-card report-empty">
+				<div class="report-empty-icon">⚠️</div>
+				<p class="report-empty-text">{{error}}</p>
+				<button class="btn-link" @click="loadReports">Tekrar Dene</button>
+			</div>
+
+			<!-- Empty -->
+			<div v-else-if="reports.length === 0" class="glass-card report-empty">
+				<div class="report-empty-icon">📋</div>
+				<p class="report-empty-text">Henüz kaydedilmiş test bulunmamaktadır. Lütfen önce testi tamamlayın.</p>
+				<router-link class="btn-link" to="/test/1">Teste Git →</router-link>
+			</div>
+
+			<!-- Reports List -->
+			<div v-else class="history-list glass-card">
+				<div v-for="item in reports" :key="item.id" class="history-item" @click="openReport(item.id)">
+					<div>
+						<div class="history-name">{{item.name}}</div>
+						<div class="history-details">{{item.date}} · {{item.gender === 'male' ? 'Erkek' : 'Kadın'}} · {{item.answeredCount}} soru</div>
+					</div>
+					<div class="history-arrow">›</div>
+				</div>
+			</div>
+		</div>
+	</script>
+
+	<!-- Firebase SDK (compat mode for plain JS) -->
+	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
 	<script src="https://unpkg.com/vue@2.7.16/dist/vue.js"></script>
 	<script src="https://unpkg.com/vue-router@3.6.5/dist/vue-router.js"></script>
 	<script src="https://unpkg.com/vue-chartjs@3.5.1/dist/vue-chartjs.min.js"></script>
+
 	<script src="data.js"></script>
+	<script src="firebase.js"></script>
+	<script src="services/scoring.js"></script>
+	<script src="services/results.js"></script>
 	<script src="components/linechart.js"></script>
 	<script src="views/about.js"></script>
 	<script src="views/test.js"></script>
 	<script src="views/report.js"></script>
+	<script src="views/reports.js"></script>
 	<script src="app.js"></script>
 </body>
 

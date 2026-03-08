@@ -1,4 +1,4 @@
-const routes = [
+var routes = [
     {
         path: "/",
         name: "about",
@@ -14,17 +14,29 @@ const routes = [
         component: Test
     },
     {
-        path: "/report",
+        path: "/report/:id",
         name: "report",
         component: Report
+    },
+    {
+        path: "/reports",
+        name: "reports",
+        component: Reports
+    },
+    {
+        path: "/report",
+        redirect: "/reports"
     }
 ];
 
-const router = new VueRouter({
-    routes: routes
+var router = new VueRouter({
+    routes: routes,
+    scrollBehavior: function () {
+        return { x: 0, y: 0 };
+    }
 });
 
-const app = new Vue({
+var app = new Vue({
     el: "#app",
     router: router
 });

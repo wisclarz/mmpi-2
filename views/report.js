@@ -1,10 +1,14 @@
-const Report = Vue.component("report-view", {
+var Report = Vue.component("report-view", {
     template: "#report-view-template",
     data: function () {
         return {
+            loading: true,
+            error: '',
             scaleCategories: [],
             answers: {},
             gender: "male",
+            userName: '',
+            reportDate: '',
             scores: {},
             chartReady: false,
             chartData: {
@@ -63,7 +67,6 @@ const Report = Vue.component("report-view", {
                     displayColors: false
                 }
             },
-            // Scale name translations
             scaleTranslations: {
                 "Hypochondriasis": "Hipokondriazis",
                 "Depression": "Depresyon",
@@ -187,7 +190,13 @@ const Report = Vue.component("report-view", {
                 "Family Discord": "Aile İçi Geçimsizlik",
                 "Familial Alienation": "Ailevi Yabancılaşma",
                 "Low Motivation": "Düşük Motivasyon",
-                "Inability to Disclose": "Açıklayamama"
+                "Inability to Disclose": "Açıklayamama",
+                "Cynicism": "Sinizm",
+                "Demoralization": "Demoralizasyon",
+                "Antisocial Behavior": "Antisosyal Davranış",
+                "Ideas of Persecution": "Kötülük Görme Fikirleri",
+                "Hypomanic Activation": "Hipomanik Aktivasyon",
+                "Aggressiveness": "Saldırganlık"
             },
             categoryTranslations: {
                 "Response Inconsistency Scales": "Tepki Tutarsızlığı Ölçekleri",
@@ -212,7 +221,7 @@ const Report = Vue.component("report-view", {
             for (var i = 1; i <= 567; i++) {
                 if (vm.answers[i] !== undefined) {
                     list.push({
-                        text: window.questions[i - 1],
+                        text: window.questions[i] || ('Soru ' + i),
                         value: vm.answers[i]
                     });
                 }
@@ -222,46 +231,42 @@ const Report = Vue.component("report-view", {
     },
     created: function () {
         var vm = this;
-        var historyStr = localStorage.getItem('mmpi2_history');
-        var history = historyStr ? JSON.parse(historyStr) : [];
-        // Sort history newest first
-        history.sort((a, b) => parseInt(b.id) - parseInt(a.id));
-        vm.history = history;
+        var reportId = vm.$route.params.id;
 
-        var reportId = this.$route.query.id;
-        if (reportId) {
-            var report = history.find(h => h.id === reportId);
-            if (report) {
-                vm.answers = report.answers || {};
-                vm.gender = report.gender || 'male';
-                vm.userName = report.name || 'İsimsiz';
-                vm.reportDate = report.date || '';
-                vm.showHistory = false;
-            } else {
-                vm.showHistory = true;
-            }
-        } else if (history.length > 0) {
-            vm.showHistory = true;
-        } else {
-            // Check legacy answers
-            var saved = localStorage.getItem('mmpi2_answers');
-            if (saved) {
-                try {
-                    vm.answers = JSON.parse(saved);
-                    vm.gender = localStorage.getItem('mmpi2_gender') || 'male';
-                    vm.userName = localStorage.getItem('mmpi2_name') || 'İsimsiz';
-                    vm.showHistory = false;
-                } catch (e) {
-                    vm.answers = {};
-                    vm.showHistory = true;
-                }
-            } else {
-                vm.showHistory = true;
-            }
+        if (!reportId) {
+            vm.loading = false;
+            vm.error = 'Rapor ID belirtilmemiş.';
+            return;
         }
 
-        // Load scales data
-        vm.loadScales();
+        ResultsService.getResult(reportId)
+            .then(function (doc) {
+                if (!doc.exists) {
+                    vm.loading = false;
+                    vm.error = 'Rapor bulunamadı. Geçersiz veya silinmiş bir rapor bağlantısı kullanıyor olabilirsiniz.';
+                    return;
+                }
+
+                var data = doc.data();
+                vm.answers = data.answers || {};
+                vm.gender = data.gender || 'male';
+                vm.userName = data.name || 'İsimsiz';
+                vm.scores = data.scores || {};
+
+                if (data.createdAt && data.createdAt.toDate) {
+                    var d = data.createdAt.toDate();
+                    vm.reportDate = d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR');
+                } else {
+                    vm.reportDate = 'Bilinmiyor';
+                }
+
+                vm.loadScales();
+            })
+            .catch(function (err) {
+                console.error('Report load error:', err);
+                vm.loading = false;
+                vm.error = 'Rapor yüklenirken bir hata oluştu. Lütfen tekrar deneyin.';
+            });
     },
     methods: {
         loadScales: function () {
@@ -271,73 +276,27 @@ const Report = Vue.component("report-view", {
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     vm.scaleCategories = JSON.parse(xhr.responseText);
-                    if (vm.hasAnswers) {
-                        vm.grade();
+
+                    if (!vm.scores || Object.keys(vm.scores).length === 0) {
+                        vm.scores = ScoringService.gradeAll(vm.scaleCategories, vm.answers, vm.gender);
                     }
+
+                    vm.buildChart();
+                    vm.loading = false;
+                } else {
+                    vm.error = 'Ölçek verileri yüklenemedi.';
+                    vm.loading = false;
                 }
+            };
+            xhr.onerror = function () {
+                vm.error = 'Ölçek verileri yüklenemedi.';
+                vm.loading = false;
             };
             xhr.send();
         },
 
-        calculateTScore: function (rawScore, scale) {
-            var tScores = scale.tScores[this.gender];
-            if (!tScores) return rawScore;
-
-            if (scale.kCorrection) {
-                var kScore = (this.scores["K"] || 0) * scale.kCorrection + rawScore;
-                rawScore = Math.floor(kScore + 0.5);
-            }
-            if (scale.scoreOffsets && scale.scoreOffsets[this.gender]) {
-                rawScore -= scale.scoreOffsets[this.gender];
-            }
-            return tScores[Math.max(0, Math.min(rawScore, tScores.length - 1))];
-        },
-
-        gradeScale: function (scale) {
+        buildChart: function () {
             var vm = this;
-            if (scale.gender && scale.gender !== vm.gender) return;
-
-            var rawScore = scale.baseScore || 0;
-
-            scale.answers.forEach(function (v) {
-                // Each answer entry: [questionNum, expectedAnswer] or [q1, a1, q2, a2, scoreVal]
-                if (v.length === 2) {
-                    // Simple: [question, expected_answer]
-                    if (vm.answers[v[0]] === v[1]) {
-                        rawScore++;
-                    }
-                } else if (v.length === 5) {
-                    // Pair comparison: [q1, a1, q2, a2, score]
-                    if (vm.answers[v[0]] === v[1] && vm.answers[v[2]] === v[3]) {
-                        rawScore += v[4];
-                    }
-                }
-            });
-
-            if (scale.subScales) {
-                scale.subScales.forEach(function (sub) {
-                    vm.gradeScale(sub);
-                });
-            }
-
-            if (scale.tScores) {
-                vm.scores[scale.name] = vm.calculateTScore(rawScore, scale);
-            } else {
-                vm.scores[scale.name] = rawScore;
-            }
-        },
-
-        grade: function () {
-            var vm = this;
-            vm.scores = {};
-
-            vm.scaleCategories.forEach(function (category) {
-                category.items.forEach(function (item) {
-                    vm.gradeScale(item);
-                });
-            });
-
-            // Build chart data for clinical profile
             var clinicalLabels = ["VRIN", "TRIN", "F", "Fp", "FBS", "L", "K", "S", "Hs", "D", "Hy", "Pd", "Mf", "Pa", "Pt", "Sc", "Ma", "Si"];
             var clinicalData = [];
 
@@ -396,13 +355,11 @@ const Report = Vue.component("report-view", {
             return this.categoryTranslations[title] || title;
         },
 
-        clearResults: function () {
-            localStorage.removeItem('mmpi2_answers');
-            localStorage.removeItem('mmpi2_gender');
-            this.answers = {};
-            this.scores = {};
-            this.chartReady = false;
-            this.$router.push('/');
+        copyLink: function () {
+            var url = window.location.href;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url);
+            }
         }
     }
 });

@@ -1,4 +1,4 @@
-const About = Vue.component("about-view", {
+var About = Vue.component("about-view", {
     template: "#about-view-template",
     data: function () {
         return {
@@ -18,6 +18,7 @@ const About = Vue.component("about-view", {
             }
             localStorage.setItem('mmpi2_gender', this.gender);
             localStorage.setItem('mmpi2_name', this.name.trim());
+            localStorage.removeItem('mmpi2_answers');
             this.$router.push('/test/1');
         }
     }
