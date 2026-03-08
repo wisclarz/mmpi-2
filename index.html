@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>MMPI-2 Kişilik Envanteri</title>
+	<meta name="description" content="Minnesota Çok Yönlü Kişilik Envanteri (MMPI-2) - Türkçe çevrimiçi test uygulaması">
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div id="app">
+		<header class="app-header">
+			<div class="app-logo">MMPI<span>-2</span></div>
+			<nav class="app-nav">
+				<router-link to="/">Ana Sayfa</router-link>
+				<router-link to="/test">Test</router-link>
+				<router-link to="/report">Rapor</router-link>
+			</nav>
+		</header>
+
+		<router-view></router-view>
+
+		<footer class="app-footer">
+			<p>Eğitim amaçlıdır. Klinik tanı için kullanılamaz. <a href="https://github.com/nucular/mmpi-2">GitHub</a></p>
+		</footer>
+	</div>
+
+	<!-- ===== ABOUT VIEW ===== -->
+	<script type="text/x-template" id="about-view-template">
+		<div class="hero-section">
+			<div class="hero-badge">Psikolojik Değerlendirme Aracı</div>
+			<h1 class="hero-title">Minnesota Çok Yönlü Kişilik Envanteri</h1>
+			<p class="hero-description">
+				<strong>MMPI-2</strong>, yetişkin kişilik yapısını ve psikopatolojiyi ölçmek için kullanılan
+				standartlaştırılmış bir psikometrik testtir. Test <strong>567 soru</strong>dan oluşmaktadır.
+			</p>
+
+			<div class="gender-select">
+				<button class="gender-btn" :class="{active: gender === 'male'}" @click="setGender('male')">
+					<span class="gender-icon">♂</span> Erkek
+				</button>
+				<button class="gender-btn" :class="{active: gender === 'female'}" @click="setGender('female')">
+					<span class="gender-icon">♀</span> Kadın
+				</button>
+			</div>
+
+			<router-link class="btn-start" to="/test/1" @click.native="saveGender">
+				Teste Başla →
+			</router-link>
+		</div>
+	</script>
+
+	<!-- ===== TEST VIEW ===== -->
+	<script type="text/x-template" id="test-view-template">
+		<div class="test-section" v-if="questions.length > 0">
+			<div class="progress-container">
+				<div class="progress-info">
+					<span class="progress-label">İlerleme</span>
+					<span class="progress-value">{{answeredCount}} / {{questions.length - 1}} yanıtlandı</span>
+				</div>
+				<div class="progress-track">
+					<div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
+				</div>
+			</div>
+
+			<div class="glass-card question-card">
+				<div class="question-number">Soru {{currentQuestion}} / {{questions.length - 1}}</div>
+				<div class="question-text question-animate" :key="currentQuestion">
+					{{questions[currentQuestion]}}
+				</div>
+				<div class="answer-buttons">
+					<button class="btn-answer btn-true" @click="answer(true)">Doğru</button>
+					<button class="btn-answer btn-false" @click="answer(false)">Yanlış</button>
+				</div>
+			</div>
+
+			<div class="question-nav" style="margin-top:1.5rem;">
+				<router-link
+					class="btn-nav"
+					:class="{disabled: currentQuestion <= 1}"
+					:to="'/test/' + (currentQuestion - 1)">
+					<span class="btn-nav-arrow">‹</span>
+				</router-link>
+
+				<router-link
+					v-for="n in navPages"
+					:key="n"
+					class="btn-nav"
+					:class="{active: n === currentQuestion, answered: isAnswered(n)}"
+					:to="'/test/' + n">
+					{{n}}
+				</router-link>
+
+				<router-link
+					class="btn-nav"
+					:class="{disabled: currentQuestion >= questions.length - 1}"
+					:to="'/test/' + (currentQuestion + 1)">
+					<span class="btn-nav-arrow">›</span>
+				</router-link>
+			</div>
+
+			<div style="text-align:center;margin-top:1.5rem;" v-if="allAnswered">
+				<router-link class="btn-start" to="/report">Raporu Görüntüle →</router-link>
+			</div>
+		</div>
+	</script>
+
+	<!-- ===== REPORT VIEW ===== -->
+	<script type="text/x-template" id="report-view-template">
+		<div class="report-section">
+			<div class="report-header">
+				<h1 class="report-title">Test Sonuçları</h1>
+				<p class="report-subtitle" v-if="hasAnswers">Cinsiyet: {{gender === 'male' ? 'Erkek' : 'Kadın'}} | Yanıtlanan: {{Object.keys(answers).length}} soru</p>
+			</div>
+
+			<div v-if="!hasAnswers" class="glass-card report-empty">
+				<div class="report-empty-icon">📋</div>
+				<p class="report-empty-text">Henüz test tamamlanmamış. Lütfen önce testi tamamlayın.</p>
+				<router-link class="btn-link" to="/test/1">Teste Git →</router-link>
+			</div>
+
+			<div v-if="hasAnswers">
+				<!-- Chart -->
+				<div class="chart-container">
+					<div class="chart-title">Klinik Profil Grafiği</div>
+					<line-chart v-if="chartReady" :chart-data="chartData" :options="chartOptions"></line-chart>
+				</div>
+
+				<!-- Score Tables -->
+				<div class="glass-card" v-for="category in scaleCategories" :key="category.title" style="margin-bottom:1.5rem;">
+					<div class="category-title">{{translateCategory(category.title)}}</div>
+					<div class="score-table-container">
+						<table class="score-table">
+							<thead>
+								<tr>
+									<th>Ölçek</th>
+									<th>Açıklama</th>
+									<th>T Skoru</th>
+									<th>Düzey</th>
+									<th style="min-width:140px">Grafik</th>
+								</tr>
+							</thead>
+							<tbody>
+								<template v-for="item in category.items">
+									<tr v-if="scores[item.name] !== undefined && (!item.gender || item.gender === gender)" :key="item.name">
+										<td class="score-name">{{item.code || item.name}}</td>
+										<td>{{translateScale(item.title)}}</td>
+										<td class="score-value" :class="getScoreClass(scores[item.name])">
+											{{scores[item.name]}}
+										</td>
+										<td :class="getScoreClass(scores[item.name])">
+											{{getScoreLabel(scores[item.name])}}
+										</td>
+										<td>
+											<div class="score-bar-track">
+												<div class="score-bar-fill" :class="getBarClass(scores[item.name])" :style="{width: Math.min(scores[item.name], 120) / 1.2 + '%'}"></div>
+											</div>
+										</td>
+									</tr>
+								</template>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<div style="text-align:center;margin-top:1rem;">
+					<button class="btn-reset" @click="clearResults">🗑 Sonuçları Temizle</button>
+				</div>
+			</div>
+		</div>
+	</script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+	<script src="https://unpkg.com/vue@2.7.16/dist/vue.js"></script>
+	<script src="https://unpkg.com/vue-router@3.6.5/dist/vue-router.js"></script>
+	<script src="https://unpkg.com/vue-chartjs@3.5.1/dist/vue-chartjs.min.js"></script>
+	<script src="data.js"></script>
+	<script src="components/linechart.js"></script>
+	<script src="views/about.js"></script>
+	<script src="views/test.js"></script>
+	<script src="views/report.js"></script>
+	<script src="app.js"></script>
+</body>
+</html>
