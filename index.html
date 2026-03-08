@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>MMPI-2 Kişilik Envanteri</title>
-	<meta name="description" content="Minnesota Çok Yönlü Kişilik Envanteri (MMPI-2) - Türkçe çevrimiçi test uygulaması">
+	<meta name="description"
+		content="Minnesota Çok Yönlü Kişilik Envanteri (MMPI-2) - Türkçe çevrimiçi test uygulaması">
 	<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 	<div id="app">
 		<header class="app-header">
@@ -21,7 +24,8 @@
 		<router-view></router-view>
 
 		<footer class="app-footer">
-			<p>Eğitim amaçlıdır. Klinik tanı için kullanılamaz. <a href="https://github.com/nucular/mmpi-2">GitHub</a></p>
+			<p>Eğitim amaçlıdır. Klinik tanı için kullanılamaz. <a href="https://github.com/nucular/mmpi-2">GitHub</a>
+			</p>
 		</footer>
 	</div>
 
@@ -35,6 +39,10 @@
 				standartlaştırılmış bir psikometrik testtir. Test <strong>567 soru</strong>dan oluşmaktadır.
 			</p>
 
+			<div class="name-input-group" style="text-align: center; margin-bottom: 2rem;">
+				<input type="text" v-model="name" placeholder="Adınız Soyadınız" class="retro-input" style="padding: 12px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); color: white; font-size: 1.1rem; width: 100%; max-width: 300px; text-align: center;" required>
+			</div>
+
 			<div class="gender-select">
 				<button class="gender-btn" :class="{active: gender === 'male'}" @click="setGender('male')">
 					<span class="gender-icon">♂</span> Erkek
@@ -44,9 +52,9 @@
 				</button>
 			</div>
 
-			<router-link class="btn-start" to="/test/1" @click.native="saveGender">
+			<button class="btn-start" @click="startTest">
 				Teste Başla →
-			</router-link>
+			</button>
 		</div>
 	</script>
 
@@ -108,18 +116,32 @@
 	<!-- ===== REPORT VIEW ===== -->
 	<script type="text/x-template" id="report-view-template">
 		<div class="report-section">
-			<div class="report-header">
-				<h1 class="report-title">Test Sonuçları</h1>
-				<p class="report-subtitle" v-if="hasAnswers">Cinsiyet: {{gender === 'male' ? 'Erkek' : 'Kadın'}} | Yanıtlanan: {{Object.keys(answers).length}} soru</p>
+			<!-- History List View -->
+			<div v-if="showHistory">
+				<div class="report-header">
+					<h1 class="report-title">Test Geçmişi</h1>
+					<p class="report-subtitle">Kaydedilmiş tüm testleriniz</p>
+				</div>
+				<div v-if="history.length === 0" class="glass-card report-empty">
+					<div class="report-empty-icon">📋</div>
+					<p class="report-empty-text">Henüz kaydedilmiş test bulunmamaktadır. Lütfen önce testi tamamlayın.</p>
+					<router-link class="btn-link" to="/test/1">Teste Git →</router-link>
+				</div>
+				<div v-else class="history-list glass-card">
+					<div v-for="item in history" :key="item.id" class="history-item" @click="$router.push({name: 'report', query: {id: item.id}})">
+						<div class="history-name">{{item.name}}</div>
+						<div class="history-details">{{item.date}} - {{item.gender === 'male' ? 'Erkek' : 'Kadın'}}</div>
+					</div>
+				</div>
 			</div>
 
-			<div v-if="!hasAnswers" class="glass-card report-empty">
-				<div class="report-empty-icon">📋</div>
-				<p class="report-empty-text">Henüz test tamamlanmamış. Lütfen önce testi tamamlayın.</p>
-				<router-link class="btn-link" to="/test/1">Teste Git →</router-link>
-			</div>
-
-			<div v-if="hasAnswers">
+			<!-- Individual Report View -->
+			<div v-else>
+				<div class="report-header">
+					<h1 class="report-title">Test Sonuçları</h1>
+					<p class="report-subtitle"><strong>İsim:</strong> {{userName || 'İsimsiz'}} | <strong>Tarih:</strong> {{reportDate || 'Bilinmiyor'}}</p>
+					<p class="report-subtitle">Cinsiyet: {{gender === 'male' ? 'Erkek' : 'Kadın'}} | Yanıtlanan: {{Object.keys(answers).length}} soru</p>
+				</div>
 				<!-- Chart -->
 				<div class="chart-container">
 					<div class="chart-title">Klinik Profil Grafiği</div>
@@ -163,8 +185,21 @@
 					</div>
 				</div>
 
-				<div style="text-align:center;margin-top:1rem;">
-					<button class="btn-reset" @click="clearResults">🗑 Sonuçları Temizle</button>
+				<!-- Individual Answers Grid -->
+				<div class="glass-card" style="margin-top: 1.5rem;">
+					<div class="category-title">Verilen Yanıtlar</div>
+					<div class="answers-grid">
+						<div v-for="(answer, idx) in formattedAnswers" :key="idx" class="answer-item" :class="answer.value ? 'answer-true' : 'answer-false'">
+							<span class="answer-num">{{idx + 1}}.</span>
+							<span class="answer-text">{{answer.text}}</span>
+							<span class="answer-val">{{answer.value ? 'Doğru' : 'Yanlış'}}</span>
+						</div>
+					</div>
+				</div>
+
+				<div style="text-align:center;margin-top:1.5rem; display:flex; justify-content:center; gap: 1rem;">
+					<router-link class="btn-reset" to="/report" style="text-decoration:none;">⬅ Geçmişe Dön</router-link>
+					<button class="btn-reset" @click="clearResults">🗑 Tüm Sonuçları Sil</button>
 				</div>
 			</div>
 		</div>
@@ -181,4 +216,5 @@
 	<script src="views/report.js"></script>
 	<script src="app.js"></script>
 </body>
+
 </html>

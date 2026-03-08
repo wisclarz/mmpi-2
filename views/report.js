@@ -122,9 +122,7 @@ const Report = Vue.component("report-view", {
                 "Health Concerns": "Sağlık Kaygıları",
                 "Bizarre Mentation": "Tuhaf Düşünce",
                 "Anger": "Öfke",
-                "Cynicism": "Sinizm",
                 "Antisocial Practices": "Antisosyal Davranışlar",
-                "Antisocial Behavior": "Antisosyal Davranış",
                 "Type A": "A Tipi Davranış",
                 "Low Self-esteem": "Düşük Özsaygı",
                 "Social Discomfort": "Sosyal Rahatsızlık",
@@ -145,13 +143,9 @@ const Report = Vue.component("report-view", {
                 "Masculine Gender Role": "Erkeksi Cinsiyet Rolü",
                 "Feminine Gender Role": "Kadınsı Cinsiyet Rolü",
                 "Post-traumatic Stress Disorder": "Travma Sonrası Stres Bozukluğu",
-                "Demoralization": "Moralsizlik",
                 "Low Positive Emotions": "Düşük Olumlu Duygular",
-                "Ideas of Persecution": "Kötülük Görme Fikirleri",
                 "Dysfunctional Negative Emotions": "İşlevsel Olmayan Olumsuz Duygular",
                 "Aberrant Experiences": "Sapkın Deneyimler",
-                "Hypomanic Activation": "Hipomanik Aktivasyon",
-                "Aggressiveness": "Saldırganlık",
                 "Psychoticism": "Psikotisizm",
                 "Disconstraint": "Kısıtlamasızlık",
                 "Negative Emotionality / Neuroticism": "Olumsuz Duygusallık / Nevrotizm",
@@ -209,21 +203,63 @@ const Report = Vue.component("report-view", {
     computed: {
         hasAnswers: function () {
             return Object.keys(this.answers).length > 0;
+        },
+        formattedAnswers: function () {
+            var vm = this;
+            var list = [];
+            if (!window.questions) return list;
+
+            for (var i = 1; i <= 567; i++) {
+                if (vm.answers[i] !== undefined) {
+                    list.push({
+                        text: window.questions[i - 1],
+                        value: vm.answers[i]
+                    });
+                }
+            }
+            return list;
         }
     },
     created: function () {
         var vm = this;
-        // Load gender
-        vm.gender = localStorage.getItem('mmpi2_gender') || 'male';
-        // Load answers from localStorage
-        var saved = localStorage.getItem('mmpi2_answers');
-        if (saved) {
-            try {
-                vm.answers = JSON.parse(saved);
-            } catch (e) {
-                vm.answers = {};
+        var historyStr = localStorage.getItem('mmpi2_history');
+        var history = historyStr ? JSON.parse(historyStr) : [];
+        // Sort history newest first
+        history.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        vm.history = history;
+
+        var reportId = this.$route.query.id;
+        if (reportId) {
+            var report = history.find(h => h.id === reportId);
+            if (report) {
+                vm.answers = report.answers || {};
+                vm.gender = report.gender || 'male';
+                vm.userName = report.name || 'İsimsiz';
+                vm.reportDate = report.date || '';
+                vm.showHistory = false;
+            } else {
+                vm.showHistory = true;
+            }
+        } else if (history.length > 0) {
+            vm.showHistory = true;
+        } else {
+            // Check legacy answers
+            var saved = localStorage.getItem('mmpi2_answers');
+            if (saved) {
+                try {
+                    vm.answers = JSON.parse(saved);
+                    vm.gender = localStorage.getItem('mmpi2_gender') || 'male';
+                    vm.userName = localStorage.getItem('mmpi2_name') || 'İsimsiz';
+                    vm.showHistory = false;
+                } catch (e) {
+                    vm.answers = {};
+                    vm.showHistory = true;
+                }
+            } else {
+                vm.showHistory = true;
             }
         }
+
         // Load scales data
         vm.loadScales();
     },

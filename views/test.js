@@ -61,8 +61,24 @@ const Test = Vue.component("test-view", {
             if (next < vm.questions.length) {
                 vm.$router.push({ name: "test", params: { question: String(next) } });
             } else {
-                // All questions answered, go to report
-                vm.$router.push({ name: "report" });
+                // All questions answered, save to history and go to report
+                var historyStr = localStorage.getItem('mmpi2_history');
+                var history = historyStr ? JSON.parse(historyStr) : [];
+                var userName = localStorage.getItem('mmpi2_name') || 'İsimsiz';
+                var userGender = localStorage.getItem('mmpi2_gender') || 'male';
+
+                var entryId = Date.now().toString();
+                history.push({
+                    id: entryId,
+                    name: userName,
+                    gender: userGender,
+                    date: new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR'),
+                    answers: vm.answers
+                });
+                localStorage.setItem('mmpi2_history', JSON.stringify(history));
+                localStorage.setItem('mmpi2_current_report', entryId);
+
+                vm.$router.push({ name: "report", query: { id: entryId } });
             }
         },
         isAnswered: function (n) {
