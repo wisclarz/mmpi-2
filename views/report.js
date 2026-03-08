@@ -11,6 +11,7 @@ var Report = Vue.component("report-view", {
             reportDate: '',
             scores: {},
             chartReady: false,
+            promptCopied: false,
             chartData: {
                 labels: [],
                 datasets: []
@@ -213,6 +214,9 @@ var Report = Vue.component("report-view", {
         hasAnswers: function () {
             return Object.keys(this.answers).length > 0;
         },
+        aiPrompt: function () {
+            return this.buildAiPrompt();
+        },
         formattedAnswers: function () {
             var vm = this;
             var list = [];
@@ -360,6 +364,68 @@ var Report = Vue.component("report-view", {
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(url);
             }
+        },
+
+        copyPrompt: function () {
+            var vm = this;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(vm.aiPrompt).then(function () {
+                    vm.promptCopied = true;
+                    setTimeout(function () { vm.promptCopied = false; }, 2000);
+                });
+            }
+        },
+
+        buildAiPrompt: function () {
+            var vm = this;
+            if (!vm.scaleCategories.length || !Object.keys(vm.scores).length) return '';
+
+            var lines = [];
+            lines.push('Aşağıda bir MMPI-2 (Minnesota Çok Yönlü Kişilik Envanteri) test sonucu bulunmaktadır.');
+            lines.push('Lütfen bu sonuçları klinik psikoloji perspektifinden detaylı olarak analiz et.');
+            lines.push('');
+            lines.push('=== DANIŞAN BİLGİLERİ ===');
+            lines.push('İsim: ' + (vm.userName || 'Belirtilmemiş'));
+            lines.push('Cinsiyet: ' + (vm.gender === 'male' ? 'Erkek' : 'Kadın'));
+            lines.push('Test Tarihi: ' + (vm.reportDate || 'Belirtilmemiş'));
+            lines.push('Yanıtlanan Soru: ' + Object.keys(vm.answers).length + '/567');
+            lines.push('');
+
+            vm.scaleCategories.forEach(function (category) {
+                var categoryName = vm.translateCategory(category.title);
+                var hasScores = false;
+                var catLines = [];
+
+                category.items.forEach(function (item) {
+                    if (vm.scores[item.name] !== undefined && (!item.gender || item.gender === vm.gender)) {
+                        var score = vm.scores[item.name];
+                        var label = vm.getScoreLabel(score);
+                        var code = item.code || item.name;
+                        var desc = vm.translateScale(item.title);
+                        catLines.push('  ' + code + ' (' + desc + '): T=' + score + ' [' + label + ']');
+                        hasScores = true;
+                    }
+                });
+
+                if (hasScores) {
+                    lines.push('=== ' + categoryName.toUpperCase() + ' ===');
+                    lines = lines.concat(catLines);
+                    lines.push('');
+                }
+            });
+
+            lines.push('=== ANALİZ TALİMATLARI ===');
+            lines.push('1. Geçerlilik ölçeklerini değerlendir (VRIN, TRIN, F, L, K, S) - test geçerli mi?');
+            lines.push('2. Klinik ölçeklerde T>=65 olan yükselmeleri belirle ve yorumla.');
+            lines.push('3. 2-nokta ve 3-nokta kod tiplerini tespit et.');
+            lines.push('4. RC ölçekleri ile klinik ölçekleri karşılaştır.');
+            lines.push('5. İçerik ölçeklerindeki yükselmeleri değerlendir.');
+            lines.push('6. Genel klinik profil özeti ve olası tanısal hipotezler sun.');
+            lines.push('7. Tedavi önerileri ve dikkat edilmesi gereken noktaları belirt.');
+            lines.push('');
+            lines.push('NOT: Bu bir eğitim amaçlı değerlendirmedir. Kesin klinik tanı için yüz yüze klinik görüşme gereklidir.');
+
+            return lines.join('\n');
         }
     }
 });

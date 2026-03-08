@@ -187,6 +187,20 @@
 					</div>
 				</div>
 
+				<!-- AI Prompt Section -->
+				<div class="glass-card ai-prompt-section" style="margin-top: 1.5rem;" v-if="aiPrompt">
+					<div class="category-title">🤖 Yapay Zeka Analiz Promptu</div>
+					<p class="ai-prompt-desc">Aşağıdaki promptu kopyalayıp ChatGPT, Claude veya başka bir yapay zekaya yapıştırarak test sonuçlarınızın detaylı analizini alabilirsiniz.</p>
+					<div class="ai-prompt-box">
+						<pre class="ai-prompt-text">{{aiPrompt}}</pre>
+					</div>
+					<div style="text-align:center; margin-top: 1rem;">
+						<button class="btn-copy-prompt" @click="copyPrompt">
+							{{promptCopied ? '✓ Kopyalandı!' : '📋 Promptu Kopyala'}}
+						</button>
+					</div>
+				</div>
+
 				<!-- Individual Answers Grid -->
 				<div class="glass-card" style="margin-top: 1.5rem;">
 					<div class="category-title">Verilen Yanıtlar</div>

@@ -955,3 +955,56 @@ body::before {
     color: var(--accent-primary);
     transform: translateX(4px);
 }
+
+/* ===== AI PROMPT SECTION ===== */
+.ai-prompt-section {
+    border: 1px solid rgba(124, 92, 252, 0.2);
+}
+
+.ai-prompt-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.ai-prompt-box {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.ai-prompt-text {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.btn-copy-prompt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+.btn-copy-prompt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px var(--accent-glow);
+}
