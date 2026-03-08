@@ -386,127 +386,292 @@ var Report = Vue.component("report-view", {
             if (!vm.scaleCategories.length || !Object.keys(vm.scores).length) return '';
 
             var s = function (name) { return vm.getScoreStr(name); };
-            var lines = [];
+            var L = [];
 
-            lines.push('Aşağıda vereceğim MMPI-2 test sonuçlarını, klinik psikolog gibi TANISAL KESİNLİK iddiasında bulunmadan, yalnızca profesyonel ön değerlendirme ve eğitsel yorum çerçevesinde analiz et.');
-            lines.push('');
-            lines.push('Analizini TÜRKÇE yap ve çok açık, anlaşılır bir dille yaz. Teknik terimleri kullandığında mutlaka sade şekilde açıkla.');
-            lines.push('');
-            lines.push('Lütfen şu kurallara uy:');
-            lines.push('1. Kesin tanı koyma.');
-            lines.push('2. Sonuçların tek başına yeterli olmadığını, klinik görüşme ile birlikte değerlendirilmesi gerektiğini belirt.');
-            lines.push('3. Geçerlilik ölçeklerini mutlaka önce yorumla. Profil geçersiz, abartılı, savunmacı ya da tutarsız görünüyorsa bunu açıkça söyle.');
-            lines.push('4. Klinik ölçekleri tek tek açıkla.');
-            lines.push('5. Sadece puanları yazmakla kalma; puanların olası anlamını, kişinin duygu-durum, düşünce yapısı, stres tepkileri, kişilerarası ilişkileri, benlik algısı, dürtü kontrolü, kaygı, depresif eğilimler, somatik yakınmalar ve günlük işlevsellik açısından yorumla.');
-            lines.push('6. Yüksek ve dikkat çekici kombinasyonları ayrıca değerlendir.');
-            lines.push('7. Olası risk alanlarını belirt: yoğun kaygı, depresif örüntü, öfke, şüphecilik, sosyal çekilme, bedenselleştirme, obsesif eğilimler, psikotik yaşantı olasılığı, dürtüsellik vb.');
-            lines.push('8. Sonucu dengeli yorumla: güçlü yönler, koruyucu faktörler ve işlevsel tarafları da yaz.');
-            lines.push('9. Yorumların sonunda mutlaka "bu sonuçlardan kesin çıkarılamayacak şeyler" diye ayrı bir bölüm aç.');
-            lines.push('10. Eğer verilerde intihar riski, kendine zarar verme, ağır psikotik belirti, gerçeklik değerlendirmesinde ciddi bozulma veya acil klinik risk düşündüren bir tablo varsa bunu net şekilde belirt ve profesyonel destek öner.');
-            lines.push('');
-            lines.push('ÇIKTI FORMATI şu şekilde olsun:');
-            lines.push('');
-            lines.push('1) Kısa Genel Özet');
-            lines.push('2) Geçerlilik Değerlendirmesi');
-            lines.push('3) Klinik Ölçeklerin Ayrıntılı Yorumu (her ölçek ayrı başlık)');
-            lines.push('4) Kod Tipi / Kombinasyon Analizi (en yüksek 2-3 yükselme)');
-            lines.push('5) Kişilik ve Psikolojik İşleyiş Profili (duygusal yapı, stres, savunma, ilişkiler, benlik, öfke, gerçeklik değerlendirmesi, sosyal uyum)');
-            lines.push('6) Olası Klinik Temalar (kaygı, depresyon, somatizasyon, obsesif, paranoid, düşünce dağınıklığı, dürtüsellik, travma ipuçları — olasılık diliyle)');
-            lines.push('7) Güçlü Yönler ve Koruyucu Faktörler');
-            lines.push('8) Dikkat Edilmesi Gereken Riskler');
-            lines.push('9) Bu Sonuçlardan Kesin Çıkarılamayacak Şeyler');
-            lines.push('10) Sonuç ve Öneri');
-            lines.push('');
-            lines.push('Her klinik ölçek başlığı altında: puanın olası anlamı, düşünce/duygu/davranış/ilişki örüntüsüne etkisi ve günlük yaşama muhtemel yansıması yer alsın.');
-            lines.push('');
-            lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            lines.push('Şimdi aşağıdaki verileri analiz et:');
-            lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            lines.push('');
-            lines.push('Cinsiyet: ' + (vm.gender === 'male' ? 'Erkek' : 'Kadın'));
-            lines.push('Test Tarihi: ' + (vm.reportDate || 'Belirtilmemiş'));
-            lines.push('Yanıtlanan Soru: ' + Object.keys(vm.answers).length + '/567');
-            lines.push('');
+            L.push('Aşağıda vereceğim MMPI-2 test sonuçlarını, klinik psikolog gibi TANISAL KESİNLİK iddiasında bulunmadan, yalnızca profesyonel ön değerlendirme ve eğitsel yorum çerçevesinde analiz et.');
+            L.push('');
+            L.push('Analizini TÜRKÇE yap ve çok açık, anlaşılır bir dille yaz. Teknik terimleri kullandığında mutlaka sade şekilde açıkla.');
+            L.push('');
+            L.push('Lütfen şu kurallara uy:');
+            L.push('1. Kesin tanı koyma.');
+            L.push('2. Sonuçların tek başına yeterli olmadığını, klinik görüşme ile birlikte değerlendirilmesi gerektiğini belirt.');
+            L.push('3. Geçerlilik ölçeklerini mutlaka önce yorumla. Profil geçersiz, abartılı, savunmacı ya da tutarsız görünüyorsa bunu açıkça söyle.');
+            L.push('4. Klinik ölçekleri tek tek açıkla. Alt ölçekleri de mutlaka değerlendir; ana ölçek puanının hangi bileşenlerden kaynaklandığını göster.');
+            L.push('5. Sadece puanları yazmakla kalma; puanların olası anlamını, kişinin duygu-durum, düşünce yapısı, stres tepkileri, kişilerarası ilişkileri, benlik algısı, dürtü kontrolü, kaygı, depresif eğilimler, somatik yakınmalar ve günlük işlevsellik açısından yorumla.');
+            L.push('6. Yüksek ve dikkat çekici kombinasyonları ayrıca değerlendir.');
+            L.push('7. Olası risk alanlarını belirt: yoğun kaygı, depresif örüntü, öfke, şüphecilik, sosyal çekilme, bedenselleştirme, obsesif eğilimler, psikotik yaşantı olasılığı, dürtüsellik vb.');
+            L.push('8. Sonucu dengeli yorumla: güçlü yönler, koruyucu faktörler ve işlevsel tarafları da yaz.');
+            L.push('9. Yorumların sonunda mutlaka "bu sonuçlardan kesin çıkarılamayacak şeyler" diye ayrı bir bölüm aç.');
+            L.push('10. Eğer verilerde intihar riski, kendine zarar verme, ağır psikotik belirti, gerçeklik değerlendirmesinde ciddi bozulma veya acil klinik risk düşündüren bir tablo varsa bunu net şekilde belirt ve profesyonel destek öner.');
+            L.push('11. İçerik alt ölçekleri ve Harris-Lingoes alt ölçeklerini kullanarak ana ölçek yükselmelerinin kaynağını derinlemesine analiz et.');
+            L.push('12. Kritik madde gruplarındaki onaylanma sayılarını değerlendir; özellikle intihar düşünceleri, psikotik belirtiler, madde kullanımı ve öfke alanlarına dikkat et.');
+            L.push('');
+            L.push('ÇIKTI FORMATI şu şekilde olsun:');
+            L.push('');
+            L.push('1) Kısa Genel Özet');
+            L.push('2) Geçerlilik Değerlendirmesi');
+            L.push('3) Klinik Ölçeklerin Ayrıntılı Yorumu (her ölçek + alt ölçekleri ayrı başlık)');
+            L.push('4) RC Ölçeklerinin Yorumu');
+            L.push('5) İçerik Ölçeklerinin Ayrıntılı Yorumu (her ölçek + alt ölçekleri)');
+            L.push('6) Kod Tipi / Kombinasyon Analizi (en yüksek 2-3 yükselme)');
+            L.push('7) Kişilik ve Psikolojik İşleyiş Profili (duygusal yapı, stres, savunma, ilişkiler, benlik, öfke, gerçeklik değerlendirmesi, sosyal uyum)');
+            L.push('8) Ek Ölçekler ve PSY-5 Değerlendirmesi');
+            L.push('9) Kritik Madde Analizi');
+            L.push('10) Olası Klinik Temalar (kaygı, depresyon, somatizasyon, obsesif, paranoid, düşünce dağınıklığı, dürtüsellik, travma ipuçları — olasılık diliyle)');
+            L.push('11) Güçlü Yönler ve Koruyucu Faktörler');
+            L.push('12) Dikkat Edilmesi Gereken Riskler');
+            L.push('13) Bu Sonuçlardan Kesin Çıkarılamayacak Şeyler');
+            L.push('14) Sonuç ve Öneri');
+            L.push('');
+            L.push('Her klinik ölçek başlığı altında: puanın olası anlamı, alt ölçek katkıları, düşünce/duygu/davranış/ilişki örüntüsüne etkisi ve günlük yaşama muhtemel yansıması yer alsın.');
+            L.push('');
+            L.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            L.push('Şimdi aşağıdaki verileri analiz et:');
+            L.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            L.push('');
+            L.push('Cinsiyet: ' + (vm.gender === 'male' ? 'Erkek' : 'Kadın'));
+            L.push('Test Tarihi: ' + (vm.reportDate || 'Belirtilmemiş'));
+            L.push('Yanıtlanan Soru: ' + Object.keys(vm.answers).length + '/567');
+            L.push('');
 
-            lines.push('Geçerlilik Ölçekleri:');
-            lines.push('  VRIN = ' + s('VRIN'));
-            lines.push('  TRIN = ' + s('TRIN'));
-            lines.push('  F    = ' + s('F'));
-            lines.push('  Fb   = ' + s('Fb'));
-            lines.push('  Fp   = ' + s('Fp'));
-            lines.push('  FBS  = ' + s('FBS'));
-            lines.push('  L    = ' + s('L'));
-            lines.push('  K    = ' + s('K'));
-            lines.push('  S    = ' + s('S'));
-            lines.push('');
+            // ── Geçerlilik ──
+            L.push('═══ GEÇERLİLİK ÖLÇEKLERİ ═══');
+            L.push('VRIN (Değişken Tepki Tutarsızlığı) = ' + s('VRIN'));
+            L.push('TRIN (Doğru Tepki Tutarsızlığı)    = ' + s('TRIN'));
+            L.push('F    (Seyreklik)                   = ' + s('F'));
+            L.push('Fb   (Arka F)                      = ' + s('Fb'));
+            L.push('Fp   (Seyreklik-Psikopatoloji)     = ' + s('Fp'));
+            L.push('FBS  (Kötü Gösterim Ölçeği)        = ' + s('FBS'));
+            L.push('L    (Yalan / Nadir Erdemler)       = ' + s('L'));
+            L.push('K    (Düzeltme)                    = ' + s('K'));
+            L.push('S    (Üstün Kendini Sunma)          = ' + s('S'));
+            L.push('');
 
-            lines.push('Klinik Ölçekler:');
-            lines.push('  Hs (1 - Hipokondriazis)          = ' + s('Hs'));
-            lines.push('  D  (2 - Depresyon)                = ' + s('D'));
-            lines.push('  Hy (3 - Histeri)                  = ' + s('Hy'));
-            lines.push('  Pd (4 - Psikopatik Sapma)         = ' + s('Pd'));
-            lines.push('  Mf (5 - Erkeksilik-Kadınsılık)    = ' + s('Mf'));
-            lines.push('  Pa (6 - Paranoya)                  = ' + s('Pa'));
-            lines.push('  Pt (7 - Psikasteni)               = ' + s('Pt'));
-            lines.push('  Sc (8 - Şizofreni)                = ' + s('Sc'));
-            lines.push('  Ma (9 - Hipomani)                  = ' + s('Ma'));
-            lines.push('  Si (0 - Sosyal İçedönüklük)       = ' + s('Si'));
-            lines.push('');
+            // ── Klinik Ölçekler + Harris-Lingoes Alt Ölçekleri ──
+            L.push('═══ KLİNİK ÖLÇEKLER VE ALT ÖLÇEKLERİ ═══');
+            L.push('');
+            L.push('── Hs (1 - Hipokondriazis) = ' + s('Hs'));
+            L.push('');
 
-            lines.push('RC Ölçekleri:');
-            lines.push('  RCd (Demoralizasyon)               = ' + s('dem'));
-            lines.push('  RC1 (Somatik Yakınmalar)           = ' + s('som'));
-            lines.push('  RC2 (Düşük Olumlu Duygular)        = ' + s('lpe'));
-            lines.push('  RC3 (Sinizm)                       = ' + s('cyn'));
-            lines.push('  RC4 (Antisosyal Davranış)           = ' + s('asb'));
-            lines.push('  RC6 (Kötülük Görme Fikirleri)       = ' + s('per'));
-            lines.push('  RC7 (İşlevsel Olmayan Negatif Duyg.)= ' + s('dne'));
-            lines.push('  RC8 (Sapkın Deneyimler)             = ' + s('abx'));
-            lines.push('  RC9 (Hipomanik Aktivasyon)           = ' + s('hpm'));
-            lines.push('');
+            L.push('── D (2 - Depresyon) = ' + s('D'));
+            L.push('   D-O  (Belirgin)              = ' + s('D-O'));
+            L.push('   D-S  (Örtük)                 = ' + s('D-S'));
+            L.push('   D1   (Öznel Depresyon)        = ' + s('D1'));
+            L.push('   D2   (Psikomotor Yavaşlama)   = ' + s('D2'));
+            L.push('   D3   (Fiziksel İşlev Boz.)    = ' + s('D3'));
+            L.push('   D4   (Zihinsel Durgunluk)      = ' + s('D4'));
+            L.push('   D5   (Ruminasyon)             = ' + s('D5'));
+            L.push('');
 
-            lines.push('İçerik Ölçekleri:');
-            lines.push('  ANX (Kaygı)                = ' + s('ANX'));
-            lines.push('  FRS (Korkular)              = ' + s('FRS'));
-            lines.push('  OBS (Obsesiflik)            = ' + s('OBS'));
-            lines.push('  DEP (Depresyon)             = ' + s('DEP'));
-            lines.push('  HEA (Sağlık Kaygıları)     = ' + s('HEA'));
-            lines.push('  BIZ (Tuhaf Düşünce)         = ' + s('BIZ'));
-            lines.push('  ANG (Öfke)                  = ' + s('ANG'));
-            lines.push('  CYN (Sinizm)                = ' + s('CYN'));
-            lines.push('  ASP (Antisosyal Davranışlar) = ' + s('ASP'));
-            lines.push('  TPA (A Tipi Davranış)       = ' + s('TPA'));
-            lines.push('  LSE (Düşük Özsaygı)         = ' + s('LSE'));
-            lines.push('  SOD (Sosyal Rahatsızlık)    = ' + s('SOD'));
-            lines.push('  FAM (Aile Sorunları)        = ' + s('FAM'));
-            lines.push('  WRK (İş Bozuklukları)       = ' + s('WRK'));
-            lines.push('  TRT (Olumsuz Tedavi Göst.)  = ' + s('TRT'));
-            lines.push('');
+            L.push('── Hy (3 - Histeri) = ' + s('Hy'));
+            L.push('   Hy-O (Belirgin)              = ' + s('Hy-O'));
+            L.push('   Hy-S (Örtük)                 = ' + s('Hy-S'));
+            L.push('   Hy1  (Sosyal Kaygının İnkarı) = ' + s('Hy1'));
+            L.push('   Hy2  (Sevgi İhtiyacı)         = ' + s('Hy2'));
+            L.push('   Hy3  (Halsizlik-Kırgınlık)    = ' + s('Hy3'));
+            L.push('   Hy4  (Somatik Yakınmalar)     = ' + s('Hy4'));
+            L.push('   Hy5  (Saldırganlığın Bast.)   = ' + s('Hy5'));
+            L.push('');
 
-            lines.push('Ek Ölçekler:');
-            lines.push('  A   (Kaygı)                 = ' + s('A'));
-            lines.push('  R   (Bastırma)              = ' + s('R'));
-            lines.push('  Es  (Ego Gücü)              = ' + s('Es'));
-            lines.push('  MAC-R (Alkolizm)            = ' + s('MAC-R'));
-            lines.push('  AAS (Bağımlılık Kabulü)     = ' + s('AAS'));
-            lines.push('  APS (Bağımlılık Potansiyeli)= ' + s('APS'));
-            lines.push('  Ho  (Düşmanlık)             = ' + s('Ho'));
-            lines.push('  O-H (Aşırı Kontrollü Düşm.) = ' + s('O-H'));
-            lines.push('  Do  (Baskınlık)             = ' + s('Do'));
-            lines.push('  Re  (Sosyal Sorumluluk)     = ' + s('Re'));
-            lines.push('  Mt  (Üniv. Uyumsuzluğu)     = ' + s('Mt'));
-            lines.push('  PK  (TSSB)                  = ' + s('PK'));
-            lines.push('  MDS (Evlilik Sıkıntısı)     = ' + s('MDS'));
-            lines.push('');
+            L.push('── Pd (4 - Psikopatik Sapma) = ' + s('Pd'));
+            L.push('   Pd-O (Belirgin)              = ' + s('Pd-O'));
+            L.push('   Pd-S (Örtük)                 = ' + s('Pd-S'));
+            L.push('   Pd1  (Ailevi Uyumsuzluk)      = ' + s('Pd1'));
+            L.push('   Pd2  (Otorite Sorunları)       = ' + s('Pd2'));
+            L.push('   Pd3  (Sosyal Rahatlık)         = ' + s('Pd3'));
+            L.push('   Pd4  (Sosyal Yabancılaşma)     = ' + s('Pd4'));
+            L.push('   Pd5  (Kendine Yabancılaşma)    = ' + s('Pd5'));
+            L.push('');
 
-            lines.push('PSY-5 Ölçekleri:');
-            lines.push('  AGGR (Saldırganlık)         = ' + s('AGGR'));
-            lines.push('  PSYC (Psikotisizm)          = ' + s('PSYC'));
-            lines.push('  DISC (Kısıtlamasızlık)      = ' + s('DISC'));
-            lines.push('  NEGE (Olumsuz Duygusallık)   = ' + s('NEGE'));
-            lines.push('  INTR (İçedönüklük)          = ' + s('INTR'));
+            L.push('── Mf (5 - Erkeksilik-Kadınsılık) = ' + s('Mf'));
+            L.push('');
 
-            return lines.join('\n');
+            L.push('── Pa (6 - Paranoya) = ' + s('Pa'));
+            L.push('   Pa-O (Belirgin)              = ' + s('Pa-O'));
+            L.push('   Pa-S (Örtük)                 = ' + s('Pa-S'));
+            L.push('   Pa1  (Kötülük Görme Düş.)     = ' + s('Pa1'));
+            L.push('   Pa2  (Duyarlılık)             = ' + s('Pa2'));
+            L.push('   Pa3  (Saflık)                 = ' + s('Pa3'));
+            L.push('');
+
+            L.push('── Pt (7 - Psikasteni) = ' + s('Pt'));
+            L.push('');
+
+            L.push('── Sc (8 - Şizofreni) = ' + s('Sc'));
+            L.push('   Sc1  (Sosyal Yabancılaşma)     = ' + s('Sc1'));
+            L.push('   Sc2  (Duygusal Yabancılaşma)   = ' + s('Sc2'));
+            L.push('   Sc3  (Ego Hak. Bilişsel)       = ' + s('Sc3'));
+            L.push('   Sc4  (Ego Hak. İradî)          = ' + s('Sc4'));
+            L.push('   Sc5  (Ego Hak. Eksik Ketleme)  = ' + s('Sc5'));
+            L.push('   Sc6  (Tuhaf Duyusal Yaşantılar)= ' + s('Sc6'));
+            L.push('');
+
+            L.push('── Ma (9 - Hipomani) = ' + s('Ma'));
+            L.push('   Ma-O (Belirgin)              = ' + s('Ma-O'));
+            L.push('   Ma-S (Örtük)                 = ' + s('Ma-S'));
+            L.push('   Ma1  (Ahlaksızlık)            = ' + s('Ma1'));
+            L.push('   Ma2  (Psikomotor Hızlanma)     = ' + s('Ma2'));
+            L.push('   Ma3  (Sakinlik)               = ' + s('Ma3'));
+            L.push('   Ma4  (Ego Şişkinliği)          = ' + s('Ma4'));
+            L.push('');
+
+            L.push('── Si (0 - Sosyal İçedönüklük) = ' + s('Si'));
+            L.push('   Si1  (Utangaçlık/Öz-bilinç)   = ' + s('Si1'));
+            L.push('   Si2  (Sosyal Kaçınma)          = ' + s('Si2'));
+            L.push('   Si3  (Kendine/Başk. Yab.)      = ' + s('Si3'));
+            L.push('');
+
+            // ── RC Ölçekleri ──
+            L.push('═══ RC ÖLÇEKLERİ (Yeniden Yapılandırılmış Klinik) ═══');
+            L.push('RCd  (Demoralizasyon)                    = ' + s('dem'));
+            L.push('RC1  (Somatik Yakınmalar)                = ' + s('som'));
+            L.push('RC2  (Düşük Olumlu Duygular)             = ' + s('lpe'));
+            L.push('RC3  (Sinizm)                            = ' + s('cyn'));
+            L.push('RC4  (Antisosyal Davranış)               = ' + s('asb'));
+            L.push('RC6  (Kötülük Görme Fikirleri)           = ' + s('per'));
+            L.push('RC7  (İşlevsel Olmayan Negatif Duygular) = ' + s('dne'));
+            L.push('RC8  (Sapkın Deneyimler)                 = ' + s('abx'));
+            L.push('RC9  (Hipomanik Aktivasyon)              = ' + s('hpm'));
+            L.push('');
+
+            // ── İçerik Ölçekleri + Alt Ölçekleri ──
+            L.push('═══ İÇERİK ÖLÇEKLERİ VE ALT ÖLÇEKLERİ ═══');
+            L.push('');
+            L.push('ANX  (Kaygı) = ' + s('ANX'));
+            L.push('');
+
+            L.push('FRS  (Korkular) = ' + s('FRS'));
+            L.push('  FRS1 (Genel Korku)             = ' + s('FRS1'));
+            L.push('  FRS2 (Çoklu Korkular)          = ' + s('FRS2'));
+            L.push('');
+
+            L.push('OBS  (Obsesiflik) = ' + s('OBS'));
+            L.push('');
+
+            L.push('DEP  (Depresyon) = ' + s('DEP'));
+            L.push('  DEP1 (Dürtü Eksikliği)         = ' + s('DEP1'));
+            L.push('  DEP2 (Disfori)                 = ' + s('DEP2'));
+            L.push('  DEP3 (Kendini Küçümseme)        = ' + s('DEP3'));
+            L.push('  DEP4 (İntihar Düşünceleri)      = ' + s('DEP4'));
+            L.push('');
+
+            L.push('HEA  (Sağlık Kaygıları) = ' + s('HEA'));
+            L.push('  HEA1 (Gastrointestinal Belirt.) = ' + s('HEA1'));
+            L.push('  HEA2 (Nörolojik Belirtiler)     = ' + s('HEA2'));
+            L.push('  HEA3 (Genel Sağlık Kaygıları)   = ' + s('HEA3'));
+            L.push('');
+
+            L.push('BIZ  (Tuhaf Düşünce) = ' + s('BIZ'));
+            L.push('  BIZ1 (Psikotik Semptomatoloji)  = ' + s('BIZ1'));
+            L.push('  BIZ2 (Şizotipal Özellikler)     = ' + s('BIZ2'));
+            L.push('');
+
+            L.push('ANG  (Öfke) = ' + s('ANG'));
+            L.push('  ANG1 (Patlamacı Davranış)       = ' + s('ANG1'));
+            L.push('  ANG2 (Öfkelilik)               = ' + s('ANG2'));
+            L.push('');
+
+            L.push('CYN  (Sinizm) = ' + s('CYN'));
+            L.push('  CYN1 (Misantropik İnançlar)     = ' + s('CYN1'));
+            L.push('  CYN2 (Kişilerarası Kuşkuculuk)  = ' + s('CYN2'));
+            L.push('');
+
+            L.push('ASP  (Antisosyal Davranışlar) = ' + s('ASP'));
+            L.push('  ASP1 (Antisosyal Tutumlar)      = ' + s('ASP1'));
+            L.push('  ASP2 (Antisosyal Davranış)      = ' + s('ASP2'));
+            L.push('');
+
+            L.push('TPA  (A Tipi Davranış) = ' + s('TPA'));
+            L.push('  TPA1 (Sabırsızlık)             = ' + s('TPA1'));
+            L.push('  TPA2 (Rekabet Dürtüsü)          = ' + s('TPA2'));
+            L.push('');
+
+            L.push('LSE  (Düşük Özsaygı) = ' + s('LSE'));
+            L.push('  LSE1 (Kendinden Kuşku)          = ' + s('LSE1'));
+            L.push('  LSE2 (Boyun Eğicilik)           = ' + s('LSE2'));
+            L.push('');
+
+            L.push('SOD  (Sosyal Rahatsızlık) = ' + s('SOD'));
+            L.push('  SOD1 (İçedönüklük)             = ' + s('SOD1'));
+            L.push('  SOD2 (Utangaçlık)              = ' + s('SOD2'));
+            L.push('');
+
+            L.push('FAM  (Aile Sorunları) = ' + s('FAM'));
+            L.push('  FAM1 (Aile İçi Geçimsizlik)     = ' + s('FAM1'));
+            L.push('  FAM2 (Ailevi Yabancılaşma)      = ' + s('FAM2'));
+            L.push('');
+
+            L.push('WRK  (İş Bozuklukları) = ' + s('WRK'));
+            L.push('');
+
+            L.push('TRT  (Olumsuz Tedavi Göstergeleri) = ' + s('TRT'));
+            L.push('  TRT1 (Düşük Motivasyon)         = ' + s('TRT1'));
+            L.push('  TRT2 (Açıklayamama)             = ' + s('TRT2'));
+            L.push('');
+
+            // ── Ek Ölçekler ──
+            L.push('═══ EK ÖLÇEKLER ═══');
+            L.push('');
+            L.push('─ Genel Duygusal Sıkıntı:');
+            L.push('  A    (Kaygı)                    = ' + s('A'));
+            L.push('  Mt   (Üniversite Uyumsuzluğu)   = ' + s('Mt'));
+            L.push('  PK   (Keane TSSB)               = ' + s('PK'));
+            L.push('  PS   (Schlenger TSSB)            = ' + s('PS'));
+            L.push('  MDS  (Evlilik Sıkıntısı)        = ' + s('MDS'));
+            L.push('');
+            L.push('─ Geniş Kişilik Özellikleri:');
+            L.push('  R    (Bastırma)                 = ' + s('R'));
+            L.push('  Es   (Ego Gücü)                 = ' + s('Es'));
+            L.push('  Do   (Baskınlık)                = ' + s('Do'));
+            L.push('  Re   (Sosyal Sorumluluk)         = ' + s('Re'));
+            L.push('');
+            L.push('─ Davranış Kontrolsüzlüğü:');
+            L.push('  Ho   (Düşmanlık)                = ' + s('Ho'));
+            L.push('  O-H  (Aşırı Kontrollü Düşm.)    = ' + s('O-H'));
+            L.push('  MAC-R (MacAndrew Alkolizm-R)     = ' + s('MAC-R'));
+            L.push('  AAS  (Bağımlılık Kabulü)         = ' + s('AAS'));
+            L.push('  APS  (Bağımlılık Potansiyeli)    = ' + s('APS'));
+            L.push('');
+            L.push('─ Cinsiyet Rolü:');
+            L.push('  GM   (Erkeksi Cinsiyet Rolü)     = ' + s('GM'));
+            L.push('  GF   (Kadınsı Cinsiyet Rolü)     = ' + s('GF'));
+            L.push('');
+
+            // ── PSY-5 ──
+            L.push('═══ PSY-5 ÖLÇEKLERİ ═══');
+            L.push('AGGR (Saldırganlık)              = ' + s('AGGR'));
+            L.push('PSYC (Psikotisizm)               = ' + s('PSYC'));
+            L.push('DISC (Kısıtlamasızlık)           = ' + s('DISC'));
+            L.push('NEGE (Olumsuz Duygusallık)        = ' + s('NEGE'));
+            L.push('INTR (İçedönüklük)               = ' + s('INTR'));
+            L.push('');
+
+            // ── Kritik Maddeler ──
+            L.push('═══ KRİTİK MADDELER (Onaylanan Madde Sayısı / Toplam) ═══');
+            L.push('Not: Bunlar T-skoru değil, onaylanan kritik madde sayısıdır.');
+            L.push('');
+            L.push('─ Koss-Butcher Kritik Maddeleri:');
+            L.push('  KB1 (Akut Kaygı)               = ' + s('KB1') + '/17');
+            L.push('  KB2 (Depresif İntihar Düş.)    = ' + s('KB2') + '/22');
+            L.push('  KB3 (Tehdit Edici Saldırı)      = ' + s('KB3') + '/5');
+            L.push('  KB4 (Alkolizm Durumsal Stres)   = ' + s('KB4') + '/7');
+            L.push('  KB5 (Zihinsel Karışıklık)       = ' + s('KB5') + '/11');
+            L.push('  KB6 (Kötülük Görme Düşünceleri)  = ' + s('KB6') + '/16');
+            L.push('');
+            L.push('─ Lachar-Wrobel Kritik Maddeleri:');
+            L.push('  LW1  (Kaygı ve Gerginlik)       = ' + s('LW1') + '/11');
+            L.push('  LW2  (Depresyon ve Endişe)       = ' + s('LW2') + '/16');
+            L.push('  LW3  (Uyku Bozukluğu)           = ' + s('LW3') + '/6');
+            L.push('  LW4  (Sapkın İnançlar)           = ' + s('LW4') + '/14');
+            L.push('  LW5  (Sapkın Düşünce/Deneyim)    = ' + s('LW5') + '/10');
+            L.push('  LW6  (Madde Kullanımı)           = ' + s('LW6') + '/3');
+            L.push('  LW7  (Antisosyal Tutum)          = ' + s('LW7') + '/9');
+            L.push('  LW8  (Aile Çatışması)            = ' + s('LW8') + '/4');
+            L.push('  LW9  (Sorunlu Öfke)              = ' + s('LW9') + '/4');
+            L.push('  LW10 (Cinsel Kaygı/Sapma)        = ' + s('LW10') + '/6');
+            L.push('  LW11 (Somatik Belirtiler)        = ' + s('LW11') + '/23');
+
+            return L.join('\n');
         }
     }
 });
