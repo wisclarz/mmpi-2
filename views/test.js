@@ -17,7 +17,18 @@ var Test = Vue.component("test-view", {
             }
         }
         if (!this.$route.params.question) {
-            this.$router.replace('/test/1');
+            var answeredKeys = Object.keys(this.answers).map(Number).sort(function(a, b) { return a - b; });
+            var nextQuestion = 1;
+            if (answeredKeys.length > 0) {
+                // İlk cevaplanmamış soruyu bul
+                for (var i = 1; i <= this.questions.length - 1; i++) {
+                    if (this.answers[i] === undefined) {
+                        nextQuestion = i;
+                        break;
+                    }
+                }
+            }
+            this.$router.replace('/test/' + nextQuestion);
         }
     },
     computed: {
@@ -39,9 +50,8 @@ var Test = Vue.component("test-view", {
         },
         navPages: function () {
             var pages = [];
-            var start = Math.max(1, this.currentQuestion - 3);
+            var start = Math.max(1, this.currentQuestion - 1);
             var end = Math.min(start + 7, this.questions.length - 1);
-            start = Math.max(1, end - 7);
             for (var i = start; i <= end; i++) {
                 pages.push(i);
             }
